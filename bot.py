@@ -79,5 +79,5 @@ dispatcher.add_handler(CommandHandler('components', components))
 dispatcher.add_handler(CommandHandler('plotgraph', plotgraph))
 dispatcher.add_handler(CommandHandler('route', route, pass_args=True))
 
-# engega el bot
+# Enciende el bot
 updater.start_polling()
