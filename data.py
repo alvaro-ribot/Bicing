@@ -1,13 +1,15 @@
 import pandas as pd
 import networkx as nx
 from pandas import DataFrame
-import staticmap
+from staticmap import StaticMap, Line, CircleMarker
 from haversine import haversine
 from geopy.geocoders import Nominatim
 
 url = 'https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information'
 bicing = DataFrame.from_records(pd.read_json(url)['data']['stations'], index='station_id')
 #for st in bicing.itertuples(): print(st.Index, st.lat, st.lon)
+
+#print(bicing)
 
 coord4 = (41.393480, 2.181555)
 coord5 = (41.391075, 2.180223)
@@ -53,35 +55,89 @@ if coords is None: print("Adreça no trobada")
 else: print(coords)  
 '''
 
-G = nx.Graph()
-for st in bicing.itertuples():
-    stop = (st.Index, st.lat, st.lon)
-    G.add_node(stop)
 
-print(G.number_of_nodes())
-print(G.number_of_edges())
+def route(G, addresses, d):
+    coords = addressesTOcoordinates(addresses)
+    if coords is None: print("Adreça no trobada")
+    else:
+        coord_origen, coord_desti = coords
+        st1 = ('source', coord_origen[0], coord_origen[1])
+        st2 = ('target', coord_desti[0], coord_origen[1])
 
-d = int(input("Distance: "))
+        G.add_node(st1)
+        G.add_node(st2)
 
-for st1 in G:
-    for st2 in G:
-        if st1[0] != st2[0]:
-            coord1 = (st1[1], st1[2])
-            coord2 = (st2[1], st2[2])
-            if haversine(coord1, coord2) <= d:
-                G.add_edge(st1, st2)
+        for st in G:
 
-print(G.number_of_nodes())
-print(G.number_of_edges())
+            if st[0] != st2[0] and haversine((st[1], st[2]), (st1[1], st1[2])) <= d:
+                G.add_edge(st1, st)
+            if st[0] != st1[0] and haversine((st[1], st[2]), (st2[1], st2[2])) <= d:
+                G.add_edge(st2, st)
+        
+        print(nx.shortest_path(G, source=st1, target=st2))
+
+        G.remove_node(st1)
+        G.remove_node(st2)
+
 
 
 def main ():
-    G = nx.graph()
+    G = nx.Graph()
     for st in bicing.itertuples():
-        G.addNode(st.Index, st.lat, st.lon)
+        stop = (st.Index, st.lat, st.lon)
+        G.add_node(stop)
+
     print(G.number_of_nodes())
     print(G.number_of_edges())
 
+    d = 100 
 
-main
+    for st1 in G:
+        for st2 in G:
+            if st1[0] != st2[0]:
+                coord1 = (st1[1], st1[2])
+                coord2 = (st2[1], st2[2])
+                if haversine(coord1, coord2)*1000 <= d:
+                    G.add_edge(st1, st2)
+
+    print(G.number_of_nodes())
+    print(G.number_of_edges())
+
+    l = list(nx.connected_components(G))
+    '''
+    for m in l :
+        print(m)
+        print('...')
+        print('...')
+    '''
+    print(len(l))
+    '''
+    m = StaticMap(300, 400, 10)
+    m.add_line(Line(((13.4, 52.5), (2.3, 48.9)), 'blue', 3))
+    image = m.render()
+    image.save('map.png')
+    '''
+
+    route(G, 'Pau Gargallo 1, PL. Lesseps', d)
+
+    m_bcn = StaticMap(600, 600)
+    for st in G:
+        marker = CircleMarker((st[2], st[1]), 'red', 2)
+        m_bcn.add_marker(marker)
+
+    #l = list(G.edges())
+    for e in G.edges():
+        st1 = e[0];
+        st2 = e[1];
+        line = Line(((st1[2], st1[1]), (st2[2], st2[1])), 'blue', 2)
+        m_bcn.add_line(line)
+
+
+    image = m_bcn.render()
+    image.save('bicing.png')
+
+
+
+
+main()
 
