@@ -7,7 +7,7 @@ from geopy.geocoders import Nominatim
 
 url = 'https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information'
 bicing = DataFrame.from_records(pd.read_json(url)['data']['stations'], index='station_id')
-for st in bicing.itertuples(): print(st.Index, st.lat, st.lon)
+#for st in bicing.itertuples(): print(st.Index, st.lat, st.lon)
 
 coord4 = (41.393480, 2.181555)
 coord5 = (41.391075, 2.180223)
@@ -40,7 +40,7 @@ def addressesTOcoordinates(addresses):
     except:
         return None
 
-
+'''
 coords = addressesTOcoordinates('Passeig de Gràcia 92, La Rambla 51')
 if coords is None: print("Adreça no trobada")
 else:
@@ -51,8 +51,37 @@ else:
 coords = addressesTOcoordinates('Avinguda de Jordi Cortadella, Carrer de Jordi Petit')
 if coords is None: print("Adreça no trobada")
 else: print(coords)  
+'''
+
+G = nx.Graph()
+for st in bicing.itertuples():
+    stop = (st.Index, st.lat, st.lon)
+    G.add_node(stop)
+
+print(G.number_of_nodes())
+print(G.number_of_edges())
+
+d = int(input("Distance: "))
+
+for st1 in G:
+    for st2 in G:
+        if st1[0] != st2[0]:
+            coord1 = (st1[1], st1[2])
+            coord2 = (st2[1], st2[2])
+            if haversine(coord1, coord2) <= d:
+                G.add_edge(st1, st2)
+
+print(G.number_of_nodes())
+print(G.number_of_edges())
 
 
 def main ():
     G = nx.graph()
+    for st in bicing.itertuples():
+        G.addNode(st.Index, st.lat, st.lon)
+    print(G.number_of_nodes())
+    print(G.number_of_edges())
+
+
+main
 
