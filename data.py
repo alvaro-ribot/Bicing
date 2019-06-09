@@ -1,18 +1,10 @@
 import pandas as pd
 import networkx as nx
-<<<<<<< HEAD
 from pandas import DataFrame
-=======
-from pandas import Dataframe
 import staticmap
->>>>>>> 7152a562d4b2869c71b8b5036c3bdd3e184d8892
 from haversine import haversine
 from geopy.geocoders import Nominatim
 
-url = 'https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information'
-bicing = DataFrame.from_records(pd.read_json(url)['data']['stations'], index='station_id')
-
-<<<<<<< HEAD
 url = 'https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information'
 bicing = DataFrame.from_records(pd.read_json(url)['data']['stations'], index='station_id')
 for st in bicing.itertuples(): print(st.Index, st.lat, st.lon)
@@ -60,16 +52,7 @@ coords = addressesTOcoordinates('Avinguda de Jordi Cortadella, Carrer de Jordi P
 if coords is None: print("Adreça no trobada")
 else: print(coords)  
 
-=======
+
 def main ():
->>>>>>> 7152a562d4b2869c71b8b5036c3bdd3e184d8892
+    G = nx.graph()
 
-	G = nx.graph()
-
-
-
-
-
-
-
-main ()
