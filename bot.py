@@ -1,6 +1,9 @@
 # Importa el módulo correspondiente a el cálculo sobre el grafo y la información del proyecto.
 import data
 
+# Importa el módulo de la librería estándar para obtener información temporal. 
+import datetime
+
 # Importa la API de Telegram
 import telegram
 from telegram.ext import Updater
@@ -18,13 +21,15 @@ def start(bot, update):
 # Función para disponer las posibles comandas del bot.
 def help(bot, update):
 	help_text = 
-	bot.send_message(chat_id=update.message.chat_id, text="Aquestes són les commandes disponibles: ")
+	bot.send_message(chat_id=update.message.chat_id, text="Aquestes són les commandes disponibles:")
 	for command in commands:
-		print("/"command)
+		print('/'command)
+
 
 # Función que escribe el nombre de los autores del proyecto.
 def authors(bot, update):
 	bot.send_message(chat_id=update.message.chat_id, text="Aquest bot ha estat creat per Álvaro Ribot Barrado i Luis Sierra Muntané")
+
 
 # Función que construye el grafo geométrico, tomando como argumento la distancia del grafo. Llama a la función
 def graph(bot, update, args):
@@ -33,6 +38,7 @@ def graph(bot, update, args):
 	except Exception as e:
 		print(e)
 		bot.send_message(chat_id=update.message.chat_id, text='💣')
+
 
 # Función que nos da el número de nodos de nuestro grafo.
 def nodes(bot, update):
@@ -45,6 +51,7 @@ def nodes(bot, update):
 		print(e)
 		bot.send_message(chat_id=update.message.chat_id, text='💣')
 
+
 # Función que nos da el número de aristas de nuestro grafo.
 def edges(bot, update):
 	try:
@@ -55,6 +62,7 @@ def edges(bot, update):
 	except Exception as e:
 		print(e)
 		bot.send_message(chat_id=update.message.chat_id, text='💣')
+
 
 # Función que nos da el número de componentes conexas de nuestro grafo.
 def components(bot, update):
@@ -67,9 +75,11 @@ def components(bot, update):
 		print(e)
 		bot.send_message(chat_id=update.message.chat_id, text='💣')
 
+
 # Función que muestra el mapa de la ciudad con las estaciones de bicis y las aristas que las conectan.
 def plotgraph(bot, update):
 	try:
+		# Obtenemos el nombre de la imagen con una función externa.
 		image = data.plot_graph()
 		fitxer = "%d.png" % image
 		bot.send_photo(chat_id=update.message.chat_id, photo=open(fitxer, 'rb'))
@@ -77,13 +87,28 @@ def plotgraph(bot, update):
 		print(e)
 		bot.send_message(chat_id=update.message.chat_id, text='💣')
 
+
 # Función que devuelve la ruta entre dos puntos de la ciudad, tomando como argumentos dos direcciones.
 # Luego se convierten las direcciones en coordenadas y se calcula la ruta más rápida con la función externa.
 def route(bot, update, args):
 	try:
+		# Cambiamos el mensaje para eliminar el /route.
 		address_info = update.message.text[7:]
-		ruta(address_info)
-		bot.send_message(chat_id=update.message.chat_id, text=message)
+		# Obtenemos con la función externa el tiempo que tardará el trayecto.
+		tiempo = ruta(address_info)
+		if time == -1:
+			# En este caso no se ha encontrado la dirección y se devuelve una excepción.
+			bot.send_message(chat_id=update.message.chat_id, text="Adreça no trobada")
+		else :
+			# Si se encuentran las direcciones se devuelve un mapa de la ruta más rápida entre ellas.
+			# Aquí se obtiene el nombre del fichero con la imagen del mapa.
+			image = data.plot_route()
+			fitxer = "%d.png" % image
+			bot.send_photo(chat_id=update.message.chat_id, photo=open(fitxer, 'rb'))
+			# Aquí se devuelve un mensaje con la hora aproximada de llegada.
+			message = "ETA: "
+			message.append(str(datetime.time.now() + timedelta(minutes=tiempo)))
+			bot.send_message(chat_id=update.message.chat_id, text=message)
 	except Exception as e:
 		print(e)
 		bot.send_message(chat_id=update.message.chat_id, text='💣')
