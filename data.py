@@ -102,6 +102,49 @@ def geometric_graph(distance):
                     G.add_edge(st1, st2)
 
 
+def geo_graph(distance):
+    G.clear()
+
+    url = 'https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information'
+    bicing = DataFrame.from_records(pd.read_json(url)['data']['stations'], index='station_id')
+
+    min_lat = 41.397952
+    max_lat = 41.397952
+    min_lon = 2.180042
+    max_lon = 2.180042
+
+    for st in bicing.itertuples():
+        if st.lat < min_lat: min_lat = st.lat
+        if st.lat > max_lat: max_lat = st.lat
+        if st.lon < min_lon: min_lon = st.lon
+        if st.lat > min_lat: max_lon = st.lon
+
+    print(min_lat)
+    print(max_lat)
+    print(min_lon)
+    print(max_lon)
+
+    print('**********************')
+
+    coord1 = (min_lat, min_lon)
+    coord2 = (min_lat, max_lon)
+    coord3 = (max_lat, max_lon)
+    coord4 = (max_lat, min_lon)
+
+    print(haversine(coord1, coord2))
+    print(haversine(coord2, coord3))
+
+
+    '''
+    min_lat = 41.357067
+    max_lat = 41.450634
+    min_lon = 2.111615
+    max_lon = 2.17482
+
+    dist_lon = 5.275325461106297
+    dist_lat = 10.4041900722105
+    '''
+
 
 def get_nodes():
     return G.number_of_nodes()
@@ -188,9 +231,13 @@ def main ():
 
 geometric_graph(1000)
 
+plot_graph()
 
-route(G, 'Pau Gargallo 1, PL. Lesseps', 1000)
+
+'''
+route(G, 'Avinguda Meridiana 1, Plaza Lesseps', 1000)
 geometric_graph(500)
 plot_graph()
+'''
 
 
