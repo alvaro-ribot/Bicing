@@ -13,17 +13,20 @@ from telegram.ext import CommandHandler
 
 commands = ["start", "help", "authors", "graph", "nodes", "edges", "components", "plotgraph", "route"]
 
-# Primera función, sirve para activar el bot.
+# Primera función, sirve para activar el bot. Da un breve mensaje de bienvenida.
 def start(bot, update):
     bot.send_message(chat_id=update.message.chat_id, text="Hola! Soc el bot Bicing.")
 
 
 # Función para disponer las posibles comandas del bot.
 def help(bot, update):
-	help_text = 
 	bot.send_message(chat_id=update.message.chat_id, text="Aquestes són les commandes disponibles:")
-	for command in commands:
-		print('/'command)
+	# String de varias líneas para componer el mensaje.
+	message = """"""
+	for action in commands:
+		command = '/' + action + '\n'
+		message += command
+	bot.send_message(chat_id=update.message.chat_id, text=message)
 
 
 # Función que escribe el nombre de los autores del proyecto.
@@ -43,10 +46,11 @@ def graph(bot, update, args):
 # Función que nos da el número de nodos de nuestro grafo.
 def nodes(bot, update):
 	try:
+		# Obtenemos el número de nodos con la función externa.
 		n = data.get_nodes()
 		message = "Aquest nombre d'estacions estan a la teva disposició:"
 		bot.send_message(chat_id=update.message.chat_id, text=message)
-		bot.send_message(chat_id=update.message.chat_id, text=n)
+		bot.send_message(chat_id=update.message.chat_id, text=str(n))
 	except Exception as e:
 		print(e)
 		bot.send_message(chat_id=update.message.chat_id, text='💣')
@@ -55,10 +59,11 @@ def nodes(bot, update):
 # Función que nos da el número de aristas de nuestro grafo.
 def edges(bot, update):
 	try:
+		# Obtenemos el número de aristas con la función externa.
 		n = data.get_edges()
 		message = "Aquest nombre de trajectes són viables sota la teva configuració:"
 		bot.send_message(chat_id=update.message.chat_id, text=message)
-		bot.send_message(chat_id=update.message.chat_id, text=n)
+		bot.send_message(chat_id=update.message.chat_id, text=str(n))
 	except Exception as e:
 		print(e)
 		bot.send_message(chat_id=update.message.chat_id, text='💣')
