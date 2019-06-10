@@ -9,6 +9,11 @@ import telegram
 from telegram.ext import Updater
 from telegram.ext import CommandHandler
 
+'''
+# Creamos el grafo geométrico de las estaciones con distancia estándar 1km.
+G = data.geometric_graph(1000)
+'''
+
 # Lista de funciones que puede ejecutar el bot.
 
 commands = ["start", "help", "authors", "graph", "nodes", "edges", "components", "plotgraph", "route"]
@@ -131,7 +136,7 @@ updater = Updater(token=TOKEN)
 dispatcher = updater.dispatcher
 
 # Indica que cuando el bot reciba una orden dada se ejecute su función correspondiente.
-dispatcher.add_handler(CommandHandler('start', start))
+dispatcher.add_handler(CommandHandler('start', start, pass_user_data=True))
 dispatcher.add_handler(CommandHandler('help', help))
 dispatcher.add_handler(CommandHandler('authors', authors))
 dispatcher.add_handler(CommandHandler('graph', graph, pass_args=True))
