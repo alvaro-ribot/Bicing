@@ -8,6 +8,8 @@ from telegram.ext import CommandHandler
 
 # Lista de funciones que puede ejecutar el bot.
 
+commands = ["start", "help", "authors", "graph", "nodes", "edges", "components", "plotgraph", "route"]
+
 # Primera función, sirve para activar el bot.
 def start(bot, update):
     bot.send_message(chat_id=update.message.chat_id, text="Hola! Soc el bot Bicing.")
@@ -16,45 +18,75 @@ def start(bot, update):
 # Función para disponer las posibles comandas del bot.
 def help(bot, update):
 	help_text = 
-	bot.send_message(chat_id=update.message.chat_id, text="Aquestes són les commandes disponibles: /start /help /")
+	bot.send_message(chat_id=update.message.chat_id, text="Aquestes són les commandes disponibles: ")
 	for command in commands:
-		print()
+		print("/"command)
 
 # Función que escribe el nombre de los autores del proyecto.
 def authors(bot, update):
 	bot.send_message(chat_id=update.message.chat_id, text="Aquest bot ha estat creat per Álvaro Ribot Barrado i Luis Sierra Muntané")
 
-# Función que construye el grafo geométrico, tomando como argumento la distancia. Llama a la función
+# Función que construye el grafo geométrico, tomando como argumento la distancia del grafo. Llama a la función
 def graph(bot, update, args):
 	try:
 		distance = float(args[0])
-		data.graph()
 	except Exception as e:
 		print(e)
 		bot.send_message(chat_id=update.message.chat_id, text='💣')
 
-# Función que nos da los nodos de nuestro grafo
+# Función que nos da el número de nodos de nuestro grafo.
 def nodes(bot, update):
-	missatge = "Aquestes estacions estan a la teva disposició:"
-	bot.send_message(chat_id=update.message.chat_id, text=missatge)
+	try:
+		n = data.get_nodes()
+		message = "Aquest nombre d'estacions estan a la teva disposició:"
+		bot.send_message(chat_id=update.message.chat_id, text=message)
+		bot.send_message(chat_id=update.message.chat_id, text=n)
+	except Exception as e:
+		print(e)
+		bot.send_message(chat_id=update.message.chat_id, text='💣')
 
-# Función que nos da las aristas de nuestro grafo
+# Función que nos da el número de aristas de nuestro grafo.
 def edges(bot, update):
-	missatge = 
-	bot.send_message(chat_id=update.message.chat_id, text=missatge)
+	try:
+		n = data.get_edges()
+		message = "Aquest nombre de trajectes són viables sota la teva configuració:"
+		bot.send_message(chat_id=update.message.chat_id, text=message)
+		bot.send_message(chat_id=update.message.chat_id, text=n)
+	except Exception as e:
+		print(e)
+		bot.send_message(chat_id=update.message.chat_id, text='💣')
 
-#
+# Función que nos da el número de componentes conexas de nuestro grafo.
 def components(bot, update):
+	try:
+		n = data.connex_components()
+		message = "The number of bicycle zones under your restrictions is:"
+		bot.send_message(chat_id=update.message.chat_id, text=message)
+		bot.send_message(chat_id=update.message.chat_id, text=n)
+	except Exception as e:
+		print(e)
+		bot.send_message(chat_id=update.message.chat_id, text='💣')
 
-#
+# Función que muestra el mapa de la ciudad con las estaciones de bicis y las aristas que las conectan.
 def plotgraph(bot, update):
+	try:
+		image = data.plot_graph()
+		fitxer = "%d.png" % image
+		bot.send_photo(chat_id=update.message.chat_id, photo=open(fitxer, 'rb'))
+	except Exception as e:
+		print(e)
+		bot.send_message(chat_id=update.message.chat_id, text='💣')
 
-# Función de ruta entre dos puntos de la ciudad.
+# Función que devuelve la ruta entre dos puntos de la ciudad, tomando como argumentos dos direcciones.
+# Luego se convierten las direcciones en coordenadas y se calcula la ruta más rápida con la función externa.
 def route(bot, update, args):
 	try:
-		while args[i] !=
-		source = args[0]
-		target = args[1]
+		address_info = update.message.text[7:]
+		ruta(address_info)
+		bot.send_message(chat_id=update.message.chat_id, text=message)
+	except Exception as e:
+		print(e)
+		bot.send_message(chat_id=update.message.chat_id, text='💣')
 
 
 
