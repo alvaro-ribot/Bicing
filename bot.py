@@ -9,11 +9,6 @@ import telegram
 from telegram.ext import Updater
 from telegram.ext import CommandHandler
 
-'''
-# Creamos el grafo geométrico de las estaciones con distancia estándar 1km.
-G = data.geometric_graph(1000)
-'''
-
 # Lista de funciones que puede ejecutar el bot.
 
 commands = ["start", "help", "authors", "graph", "nodes", "edges", "components", "plotgraph", "route"]
@@ -21,6 +16,8 @@ commands = ["start", "help", "authors", "graph", "nodes", "edges", "components",
 # Primera función, sirve para activar el bot. Da un breve mensaje de bienvenida.
 def start(bot, update):
     bot.send_message(chat_id=update.message.chat_id, text="Hola! Soc el bot Bicing.")
+    # Creamos el grafo geométrico de las estaciones con distancia estándar 1km.
+	G = data.geometric_graph(1000)
 
 
 # Función para disponer las posibles comandas del bot.
@@ -43,6 +40,7 @@ def authors(bot, update):
 def graph(bot, update, args):
 	try:
 		distance = float(args[0])
+		G = data.graph(500)
 	except Exception as e:
 		print(e)
 		bot.send_message(chat_id=update.message.chat_id, text='💣')
@@ -52,7 +50,7 @@ def graph(bot, update, args):
 def nodes(bot, update):
 	try:
 		# Obtenemos el número de nodos con la función externa.
-		n = data.get_nodes()
+		n = data.get_nodes(G)
 		message = "Aquest nombre d'estacions estan a la teva disposició:"
 		bot.send_message(chat_id=update.message.chat_id, text=message)
 		bot.send_message(chat_id=update.message.chat_id, text=str(n))
