@@ -6,8 +6,6 @@ from haversine import haversine
 from geopy.geocoders import Nominatim
 
 
-G = nx.Graph()
-
 
 def addressesTOcoordinates(addresses):
     '''
@@ -83,11 +81,9 @@ def route(G, addresses, d):
         G.remove_node(st2)
 
 
-def geometric_graph(distance):
-    G.clear()
-
-    url = 'https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information'
-    bicing = DataFrame.from_records(pd.read_json(url)['data']['stations'], index='station_id')
+'''
+def geometric_graph(distance, bicing):
+    G = nx.Graph()
 
     for st in bicing.itertuples():
         stop = (st.Index, st.lat, st.lon)
@@ -101,17 +97,35 @@ def geometric_graph(distance):
                 if haversine(coord1, coord2)*1000 <= distance:
                     G.add_edge(st1, st2)
 
+    return G
+'''
 
-def geo_graph(distance):
-    G.clear()
 
-    url = 'https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information'
-    bicing = DataFrame.from_records(pd.read_json(url)['data']['stations'], index='station_id')
+def geometric_graph(distance, bicing):
+    G = nx.Graph()
 
-    min_lat = 41.397952
-    max_lat = 41.397952
-    min_lon = 2.180042
-    max_lon = 2.180042
+    for st in bicing.itertuples():
+        G.add_node(st.Index)
+
+    for idx1 in G:
+        for idx2 in G:
+            if idx1 != idx2:
+
+                coord1 = (bicing.at[idx1, 'lat'], bicing.at[idx1, 'lon'])
+                coord2 = (bicing.at[idx2, 'lat'], bicing.at[idx2, 'lon'])
+                if haversine(coord1, coord2)*1000 <= distance:
+                    G.add_edge(idx1, idx2)
+
+    return G
+
+
+def geo_graph(distance, bicing):
+    G = nx.Graph()
+
+    min_lat = bicing.loc[1].lat
+    max_lat = bicing.loc[1].lat
+    min_lon = bicing.loc[1].lon
+    max_lon = bicing.loc[1].lon
 
     for st in bicing.itertuples():
         if st.lat < min_lat: min_lat = st.lat
@@ -131,8 +145,10 @@ def geo_graph(distance):
     coord3 = (max_lat, max_lon)
     coord4 = (max_lat, min_lon)
 
-    print(haversine(coord1, coord2))
-    print(haversine(coord2, coord3))
+    width = haversine(coord1, coord2)*1000
+    height = haversine(coord2, coord3)*1000
+
+    grid = [[]];
 
 
     '''
@@ -146,16 +162,16 @@ def geo_graph(distance):
     '''
 
 
-def get_nodes():
+def get_nodes(G):
     return G.number_of_nodes()
 
-def get_edges():
+def get_edges(G):
     return G.number_of_edges()
 
-def connex_components():
+def connex_components(G):
     return len(list(nx.connected_components(G)))
 
-def plot_graph():
+def plot_graph(G):
     m_bcn = StaticMap(1000, 1000)
     for st in G:
         marker = CircleMarker((st[2], st[1]), 'red', 2)
@@ -174,64 +190,92 @@ def plot_graph():
     return 'bicing_plot.png'
 
 def main ():
-    G = nx.Graph()
-    for st in bicing.itertuples():
-        stop = (st.Index, st.lat, st.lon)
-        G.add_node(stop)
+    url = 'https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information'
+    bicing = DataFrame.from_records(pd.read_json(url)['data']['stations'], index='station_id')
 
-    print(G.number_of_nodes())
-    print(G.number_of_edges())
 
-    d = 100 
+    G = geo_graph(1000, bicing)
 
-    for st1 in G:
-        for st2 in G:
-            if st1[0] != st2[0]:
-                coord1 = (st1[1], st1[2])
-                coord2 = (st2[1], st2[2])
-                if haversine(coord1, coord2)*1000 <= d:
-                    G.add_edge(st1, st2)
 
-    print(G.number_of_nodes())
-    print(G.number_of_edges())
-
-    l = list(nx.connected_components(G))
     '''
-    for m in l :
-        print(m)
-        print('...')
-        print('...')
-    '''
-    print(len(l))
-    '''
-    m = StaticMap(300, 400, 10)
-    m.add_line(Line(((13.4, 52.5), (2.3, 48.9)), 'blue', 3))
-    image = m.render()
-    image.save('map.png')
+    print(bicing.loc[1].lat)
+    print(bicing.at[1, 'lat'], bicing.at[1, 'lon'])
     '''
 
-    route(G, 'Pau Gargallo 1, PL. Lesseps', d)
+    #print(G.number_of_nodes())
+    #print(G.number_of_edges())
+    #plot_graph(G)
 
-    m_bcn = StaticMap(600, 600)
-    for st in G:
-        marker = CircleMarker((st[2], st[1]), 'red', 2)
-        m_bcn.add_marker(marker)
+    #geo_graph(1)
+    #route(G, 'Pau Gargallo 1, PL. Lesseps', d)
 
-    #l = list(G.edges())
-    for e in G.edges():
-        st1 = e[0];
-        st2 = e[1];
-        line = Line(((st1[2], st1[1]), (st2[2], st2[1])), 'blue', 2)
-        m_bcn.add_line(line)
+#main()
+
+url = 'https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information'
+bicing = DataFrame.from_records(pd.read_json(url)['data']['stations'], index='station_id')
 
 
-    image = m_bcn.render()
-    image.save('bicing.png')
+d = 5000
 
 
-geometric_graph(1000)
+min_lat = bicing.loc[1].lat
+max_lat = bicing.loc[1].lat
+min_lon = bicing.loc[1].lon
+max_lon = bicing.loc[1].lon
 
-plot_graph()
+for st in bicing.itertuples():
+    if st.lat < min_lat: min_lat = st.lat
+    if st.lat > max_lat: max_lat = st.lat
+    if st.lon < min_lon: min_lon = st.lon
+    if st.lat > min_lat: max_lon = st.lon
+
+print(min_lat)
+print(max_lat)
+print(min_lon)
+print(max_lon)
+
+print('**********************')
+
+coord1 = (min_lat, min_lon)
+coord2 = (min_lat, max_lon)
+coord3 = (max_lat, max_lon)
+coord4 = (max_lat, min_lon)
+
+width = haversine(coord1, coord2)*1000
+height = haversine(coord2, coord3)*1000
+
+
+print(width)
+print(height)
+
+grid = [[[] for j in range(int(width/d)+1)] for i in range(int(height/d)+1)]
+
+
+G = nx.Graph()
+for st in bicing.itertuples():
+        G.add_node(st.Index)
+
+print(grid)
+grid[0][0].append(1)
+print(grid)
+'''
+for idx1 in G:
+        for idx2 in G:
+            if idx1 != idx2:
+                coord1 = (bicing.at[idx1, 'lat'], bicing.at[idx1, 'lon'])
+                coord2 = (bicing.at[idx2, 'lat'], bicing.at[idx2, 'lon'])
+                if haversine(coord1, coord2)*1000 <= distance:
+                    G.add_edge(idx1, idx2)
+
+'''
+
+
+
+
+
+
+
+
 
 
 '''
