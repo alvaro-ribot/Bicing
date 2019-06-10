@@ -5,33 +5,14 @@ from staticmap import StaticMap, Line, CircleMarker
 from haversine import haversine
 from geopy.geocoders import Nominatim
 
-url = 'https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information'
-bicing = DataFrame.from_records(pd.read_json(url)['data']['stations'], index='station_id')
-#for st in bicing.itertuples(): print(st.Index, st.lat, st.lon)
 
-#print(bicing)
+G = nx.Graph()
 
-coord4 = (41.393480, 2.181555)
-coord5 = (41.391075, 2.180223)
-print (haversine(coord4, coord5))
 
 def addressesTOcoordinates(addresses):
     '''
     Returns the two coordinates of two addresses of Barcelona
     in a single string separated by a comma. In case of failure, returns None.
-
-    Examples:
-
-    >>> addressesTOcoordinates('Jordi Girona, Plaça de Sant Jaume')
-    ((41.3875495, 2.113918), (41.38264975, 2.17699121912479))
-    >>> addressesTOcoordinates('Passeig de Gràcia 92, La Rambla 51')
-    ((41.3952564, 2.1615724), (41.38082045, 2.17357087674997))
-    >>> addressesTOcoordinates('Avinguda de Jordi Cortadella, Carrer de Jordi Petit')
-    None
-    >>> addressesTOcoordinates('foo')
-    None
-    >>> addressesTOcoordinates('foo, bar, lol')
-    None
     '''
     try:
         geolocator = Nominatim(user_agent="bicing_bot")
@@ -58,7 +39,7 @@ else: print(coords)
 
 def route(G, addresses, d):
     coords = addressesTOcoordinates(addresses)
-    if coords is None: print("Adreça no trobada")
+    if coords is None: return None
     else:
         coord_origen, coord_desti = coords
         st1 = ('source', coord_origen[0], coord_origen[1])
@@ -69,17 +50,85 @@ def route(G, addresses, d):
 
         for st in G:
 
-            if st[0] != st2[0] and haversine((st[1], st[2]), (st1[1], st1[2])) <= d:
+            if st[0] != st2[0] and haversine((st[1], st[2]), (st1[1], st1[2]))*1000 <= d:
                 G.add_edge(st1, st)
-            if st[0] != st1[0] and haversine((st[1], st[2]), (st2[1], st2[2])) <= d:
+            if st[0] != st1[0] and haversine((st[1], st[2]), (st2[1], st2[2]))*1000 <= d:
                 G.add_edge(st2, st)
         
-        print(nx.shortest_path(G, source=st1, target=st2))
+        path = nx.shortest_path(G, source=st1, target=st2)
+        print(path)
+
+
+        m_route = StaticMap(1000, 1000)
+        for st in path:
+            marker = CircleMarker((st[2], st[1]), 'red', 6)
+            m_route.add_marker(marker)
+
+        #l = list(G.edges())
+        '''
+        for e in path.edges():
+            st1 = e[0];
+            st2 = e[1];
+            line = Line(((st1[2], st1[1]), (st2[2], st2[1])), 'blue', 1)
+            m_route.add_line(line)
+
+        '''
+
+
+        image = m_route.render()
+        image.save('route.png')
+
 
         G.remove_node(st1)
         G.remove_node(st2)
 
 
+def geometric_graph(distance):
+    G.clear()
+
+    url = 'https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information'
+    bicing = DataFrame.from_records(pd.read_json(url)['data']['stations'], index='station_id')
+
+    for st in bicing.itertuples():
+        stop = (st.Index, st.lat, st.lon)
+        G.add_node(stop)
+
+    for st1 in G:
+        for st2 in G:
+            if st1[0] != st2[0]:
+                coord1 = (st1[1], st1[2])
+                coord2 = (st2[1], st2[2])
+                if haversine(coord1, coord2)*1000 <= distance:
+                    G.add_edge(st1, st2)
+
+
+
+def get_nodes():
+    return G.number_of_nodes()
+
+def get_edges():
+    return G.number_of_edges()
+
+def connex_components():
+    return len(list(nx.connected_components(G)))
+
+def plot_graph():
+    m_bcn = StaticMap(1000, 1000)
+    for st in G:
+        marker = CircleMarker((st[2], st[1]), 'red', 2)
+        m_bcn.add_marker(marker)
+
+    #l = list(G.edges())
+    for e in G.edges():
+        st1 = e[0];
+        st2 = e[1];
+        line = Line(((st1[2], st1[1]), (st2[2], st2[1])), 'blue', 1)
+        m_bcn.add_line(line)
+
+
+    image = m_bcn.render()
+    image.save('bicing_plot.png')
+    return 'bicing_plot.png'
 
 def main ():
     G = nx.Graph()
@@ -137,7 +186,11 @@ def main ():
     image.save('bicing.png')
 
 
+geometric_graph(1000)
 
 
-main()
+route(G, 'Pau Gargallo 1, PL. Lesseps', 1000)
+geometric_graph(500)
+plot_graph()
+
 
