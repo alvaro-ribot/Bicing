@@ -151,23 +151,29 @@ def plotgraph(bot, update, user_data):
 # Després es converteixen les direccions en coordenades i es calcula la ruta més ràpida amb la funció externa.
 def route(bot, update, args, user_data):
     try:
-        # Canviem el missatge per eliminar el "/route".
-        address_info = update.message.text[7:]
-        # Obtenim amb la funció externa el temps que es triga en fer el trajecte.
-        time = data.ruta(address_info)
-        if time == -1:
-            # En aquest cas no s'ha trobat la direcció demanada i es retorna un avís a l'usuari.
-            message = "Adreça no trobada, assegura't que tens l'adreça ben escrita"
-            bot.send_message(chat_id=update.message.chat_id, text=message)
+        message = "Calculant la ruta més ràpida..."
+        bot.send_message(chat_id=update.message.chat_id, text=message)
+        # Comprovem que tenim un nombre correcte d'arguments.
+        if len(args) > 1: 
+            # Canviem el missatge per eliminar el "/route".
+            address_info = update.message.text[7:]
+            # Obtenim la millor ruta per fer el trajecte, guardant-la com imatge si ho fem amb èxit.
+            imatge = data.route(user_data['Graph'], address_info)
+            if imatge == None:
+                # En aquest cas no s'ha trobat la direcció demanada i es retorna un avís a l'usuari.
+                message = "Adreça no trobada, assegura't que tens l'adreça ben escrita"
+                bot.send_message(chat_id=update.message.chat_id, text=message)
+            else:
+                # Quan es troben las direccions es retorna un mapa de la ruta més ràpida entre elles.
+                # Creem un objecte de tipus "BytesIO" per guardar la imatge de la ruta en el graf.
+                bio = BytesIO()
+                # Guardem la imatge amb una funció externa per seguidament enviar-la.
+                imatge.save(bio, 'PNG')
+                bio.seek(0)
+                bot.send_photo(chat_id=update.message.chat_id, photo=bio)
         else:
-            # Quan es troben las direccions es retorna un mapa de la ruta més ràpida entre elles.
-            # Creem un objecte de tipus "BytesIO" per guardar la imatge de la ruta en el graf.
-            bio = BytesIO()
-            # Creem i guardem la imatge amb una funció externa per seguidament enviar-la.
-            imatge = data.plot_route(user_data['Graph'])
-            imatge.save(bio, 'PNG')
-            bio.seek(0)
-            bot.send_photo(chat_id=update.message.chat_id, photo=bio)
+            message = "Sembla que t'ha faltat introduir una direcció..."
+            bot.send_message(chat_id=update.message.chat_id, text=message)
     except Exception as e:
         print(e)
         bot.send_message(chat_id=update.message.chat_id, text='💣')
@@ -198,7 +204,7 @@ dispatcher.add_handler(CommandHandler('nodes', nodes, pass_user_data=True))
 dispatcher.add_handler(CommandHandler('edges', edges, pass_user_data=True))
 dispatcher.add_handler(CommandHandler('components', components, pass_user_data=True))
 dispatcher.add_handler(CommandHandler('plotgraph', plotgraph, pass_user_data=True))
-dispatcher.add_handler(CommandHandler('route', route, pass_args=True))
+dispatcher.add_handler(CommandHandler('route', route, pass_args=True, pass_user_data=True))
 
 # Avís de qualsevol error que té lloc en una sessió del bot.
 dispatcher.add_error_handler(error)
