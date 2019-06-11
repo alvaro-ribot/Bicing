@@ -12,136 +12,53 @@ from geopy.geocoders import Nominatim
 
 
 
-def addressesTOcoordinates(addresses):
-    '''
-    Returns the two coordinates of two addresses of Barcelona
-    in a single string separated by a comma. In case of failure, returns None.
-    '''
-    try:
-        geolocator = Nominatim(user_agent="bicing_bot")
-        address1, address2 = addresses.split(',')
-        location1 = geolocator.geocode(address1 + ', Barcelona')
-        location2 = geolocator.geocode(address2 + ', Barcelona')
-        return (location1.latitude, location1.longitude), (location2.latitude, location2.longitude)
-    except:
-        return None
-
-
-# Función que calcula la ruta más rápida entre dos direcciones, retornando -1 si la ruta no es posible.
-def route(G, addresses, d):
-    coords = addressesTOcoordinates(addresses)
-    if coords is None: return None
-    else:
-        coord_origen, coord_desti = coords
-        st1 = ('source', coord_origen[0], coord_origen[1])
-        st2 = ('target', coord_desti[0], coord_origen[1])
-
-
-        G.add_node(st1)
-        G.add_node(st2)
-
-        for st in G:
-
-            if st[0] != st2[0] and haversine((st[1], st[2]), (st1[1], st1[2]))*1000 <= d:
-                G.add_edge(st1, st)
-            if st[0] != st1[0] and haversine((st[1], st[2]), (st2[1], st2[2]))*1000 <= d:
-                G.add_edge(st2, st)
-        
-        path = nx.shortest_path(G, source=st1, target=st2)
-        print(path)
-
-
-        m_route = StaticMap(1000, 1000)
-        for st in path:
-            marker = CircleMarker((st[2], st[1]), 'red', 6)
-            m_route.add_marker(marker)
-
-        #l = list(G.edges())
-        '''
-        for e in path.edges():
-            st1 = e[0];
-            st2 = e[1];
-            line = Line(((st1[2], st1[1]), (st2[2], st2[1])), 'blue', 1)
-            m_route.add_line(line)
-
-        '''
-
-
-        image = m_route.render()
-        image.save('route.png')
-
-
-        G.remove_node(st1)
-        G.remove_node(st2)
-
-
-
-
-def nasty_geometric_graph(distance, bicing):
-    G = nx.Graph()
-
-    for st in bicing.itertuples():
-        G.add_node(st.Index)
-
-    for idx1 in G:
-        for idx2 in G:
-            if idx1 != idx2:
-                coord1 = (bicing.at[idx1, 'lat'], bicing.at[idx1, 'lon'])
-                coord2 = (bicing.at[idx2, 'lat'], bicing.at[idx2, 'lon'])
-                if haversine(coord1, coord2)*1000 <= distance:
-                    G.add_edge(idx1, idx2)
-
-    return G
-
-
 # Función para construir el grafo geométrico dada la distancia d máxima entre dos nodos. 
 # El algoritmo funciona partiendo el grafo en zonas cuadradas d*d y examinándolas con sus zonas adyacentes
 # en tiempo constante, suponiendo una distribución uniforme de nodos en la ciudad.
 def geometric_graph(distance, bicing):
-
-    # Nodos del grafo.
     G = nx.Graph()
     for st in bicing.itertuples():
-        G.add_node(st)
+        G.add_node(st)  # Nodes del graf.
 
-    # Encontramos las latitudes y longitudes mínimas para saber las dimensiones de la zona de bicis.
+    # Trobem les latituds i longituds minimes para saber les dimensiones de la zona de bicis.
     min_lat = bicing.loc[1].lat
     max_lat = bicing.loc[1].lat
     min_lon = bicing.loc[1].lon
     max_lon = bicing.loc[1].lon
-    for st in list(G.nodes()):
+    for st in G:
         if st.lat < min_lat: min_lat = st.lat
         if st.lat > max_lat: max_lat = st.lat
         if st.lon < min_lon: min_lon = st.lon
         if st.lat > min_lat: max_lon = st.lon
 
-
     corner1 = (min_lat, min_lon)
     corner2 = (min_lat, max_lon)
     corner3 = (max_lat, min_lon)
-
-    width = haversine(corner1, corner2)*1000 # = 5.275325461106297
-    height = haversine(corner1, corner3)*1000 # = 10.4041900722105
-
+    width = haversine(corner1, corner2)*1000
+    height = haversine(corner1, corner3)*1000
     w_shells = int(width/distance)+1
     h_shells = int(height/distance)+1
 
-    # Matriz de zonas de la ciudad que contendrán las estaciones, en función de la distancia d.
+    # Graella de zones de la ciutat que contindran les estacions, en funcio de distance.
     grid = [[[] for j in range(w_shells)] for i in range(h_shells)]
 
-    for st in list(G.nodes()):
+    # Afegim cada node a la zona corresponent 
+    for st in G:
         lon_st = int((st.lon - min_lon)/w_shells)
         lat_st = int((st.lat - min_lat)/h_shells)
         grid[lon_st][lat_st].append(st)
 
+    # Afegeix arestes al graf G visitant nomes els nodes que pertanyen a zones i, j
+    # de la graella (grid) adjacents a la zona a qui pertany st1.
     def neighbour(G, st1, i, j, grid):
         for st2 in grid[i][j]:
             if st1.Index != st2.Index:
                 coord1 = (st1.lat, st1.lon)
                 coord2 = (st2.lat, st2.lon)
-                if haversine(coord1, coord2)*1000 <= distance:
+                if haversine(coord1, coord2)*1000 <= distance: # Condicio graf geometric
                     G.add_edge(st1, st2)
 
+    # Afegim les arestes del graf geometric.
     for i in range(h_shells):
         for j in range(w_shells):
             for st1 in grid[i][j]:
@@ -162,63 +79,116 @@ def geometric_graph(distance, bicing):
                 except KeyError: pass
                 try: neighbour(G, st1, i+1, j+1, grid)
                 except KeyError: pass
-            grid[i][j].clear() # es guanya eficiencia no tornant a visitar aquesta cela
+            grid[i][j].clear() # es guanya eficiencia no tornant a visitar aquesta zona
     
     return G
 
-# retorna el nombre de nodes que te el graf G
+
+
+# Retorna el nombre de nodes que del graf G.
 def get_nodes(G):
     return G.number_of_nodes()
 
-# retorna el nombre d'arestes que te el graf G
+
+
+# Retorna el nombre d'arestes que del graf G.
 def get_edges(G):
     return G.number_of_edges()
 
-# retorna el nobre de components connexes que te el graf G
+
+
+# Retorna el nobre de components connexes que del graf G.
 def connex_components(G):
     return len(list(nx.connected_components(G)))
 
-# retorna una imatge del graf G situant-lo a la 
+
+
+# Retorna una imatge del graf G.
 def plot_graph(G):
     m_bcn = StaticMap(1000, 1000)
     for st in G:
         marker = CircleMarker((st.lon, st.lat), 'red', 2)
         m_bcn.add_marker(marker)
-
-    #l = list(G.edges())
     for e in G.edges():
         st1 = e[0];
         st2 = e[1];
         line = Line(((st1.lon, st1.lat), (st2.lon, st2.lat)), 'blue', 1)
         m_bcn.add_line(line)
 
-
     return m_bcn.render()
 
 
 
-    #route(G, 'Pau Gargallo 1, PL. Lesseps', d)
+# Retorna les dues coordenades de duess direccions (addresses) de Barcelona en 
+# una sola string seperant-les amb una coma. Si no les troba, retorna None.
+def addressesTOcoordinates(addresses):
+    try:
+        geolocator = Nominatim(user_agent="bicing_bot")
+        address1, address2 = addresses.split(',')
+        location1 = geolocator.geocode(address1 + ', Barcelona')
+        location2 = geolocator.geocode(address2 + ', Barcelona')
+        return (location1.latitude, location1.longitude), (location2.latitude, location2.longitude)
+    except:
+        return None
 
 
 
-'''
-Ejemplo:
+# Calcula la ruta mes rapida entre dues direccions, 
+# retorna None si no troba les direccions.
+def route(G, addresses):
+    coords = addressesTOcoordinates(addresses)
+    if coords is None: return None
+    else:
+        coord_origen, coord_desti = coords
+        origen = ('source', coord_origen[0], coord_origen[1])
+        desti = ('target', coord_desti[0], coord_desti[1])
 
-url = 'https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information'
-bicing = DataFrame.from_records(pd.read_json(url)['data']['stations'], index='station_id')
+        W = nx.Graph()
 
+        W.add_node(origen)
+        W.add_node(desti)
+        for st in G: W.add_node(st)
 
-distance = 1000
+        for e in G.edges():
+            time = haversine((e[0].lat, e[0].lon), (e[1].lat, e[1].lon))/10
+            W.add_edge(e[0], e[1], weight = time)
 
+        for st in G:
+            t1 = haversine((st.lat, st.lon), (origen[1], origen[2]))/4
+            t2 = haversine((st.lat, st.lon), (desti[1], desti[2]))/4
+            W.add_edge(origen, st, weight = t1)
+            W.add_edge(desti, st, weight = t2)
+        
+        path = nx.dijkstra_path(W, source=origen, target=desti)
 
+        m_route = StaticMap(1000, 1000)
+        m_route.add_marker(CircleMarker((origen[2], origen[1]), 'red', 6))
+        m_route.add_marker(CircleMarker((desti[2], desti[1]), 'red', 6))
+        for st in path:
+            if st != origen and st != desti:
+                marker = CircleMarker((st.lon, st.lat), 'red', 6)
+                m_route.add_marker(marker)
 
-G = geometric_graph(distance, bicing);
-print(get_nodes(G));
-print(get_edges(G));
+        n = len(path)
+        for i in range(n-1):
+            st1 = path[i];
+            st2 = path[i+1];
+            if st1 == origen:
+                lon1 = st1[2]
+                lat1 = st1[1]
+            else:
+                lon1 = st1.lon
+                lat1 = st1.lat
+            if st2 == desti:
+                lon2 = st2[2]
+                lat2 = st2[1]
+            else:
+                lon2 = st2.lon
+                lat2 = st2.lat
+            m_route.add_line(Line(((lon1, lat1), (lon2, lat2)), 'green', 4))
 
-W = nasty_geometric_graph(distance, bicing)
-print(get_nodes(W));
-print(get_edges(W));
-plot_graph(G);          
-'''
+        return m_route.render()
+
+        W.clear()
+
 
