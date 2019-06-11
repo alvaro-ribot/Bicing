@@ -6,7 +6,7 @@ Aquest projecte és el BicingBot de l'assignatura d'Algorísmia i Programació 2
 
 Per fer servir el bot, els usuaris el poden buscar a telegram sota l'identificador @Bicing_AP2_bot.
 
-Alternativament, es pot buscar en el web amb la direcció [t.me/Bicing_AP2_bot](t.me/Bicing_AP2_bot)
+Alternativament, es pot buscar en el web amb la direcció [t.me/Bicing_AP2_bot](https://t.me/Bicing_AP2_bot)
 
 ### Prerrequisits
 
