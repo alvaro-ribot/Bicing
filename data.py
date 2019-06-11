@@ -232,6 +232,10 @@ def main ():
 
 #main()
 
+
+'''
+Ejemplo:
+
 url = 'https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information'
 bicing = DataFrame.from_records(pd.read_json(url)['data']['stations'], index='station_id')
 
@@ -248,5 +252,5 @@ W = nasty_geometric_graph(distance, bicing)
 print(get_nodes(W));
 print(get_edges(W));
 plot_graph(G);          
-
+'''
 
