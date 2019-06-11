@@ -172,7 +172,7 @@ def route(bot, update, args, user_data):
                 bio.seek(0)
                 bot.send_photo(chat_id=update.message.chat_id, photo=bio)
         else:
-            message = "Sembla que t'ha faltat introduir una direcció..."
+            message = "Sembla que t'ha faltat introduir una direcció...\nTorna-ho a intentar."
             bot.send_message(chat_id=update.message.chat_id, text=message)
     except Exception as e:
         print(e)
