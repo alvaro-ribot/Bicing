@@ -1,19 +1,22 @@
-# Importa el módul corresponent al càlcul sobre el graf i la informació del proyecte.
+# Importa el mòdul corresponent al càlcul sobre el graf i la informació del proyecte.
 import data
 
-# Importa el módul per el tractament de dades en taules DataFrame.
+# Importa el mòdul per accions de memòria que es farà servir per arxius de tipus imatges.
+from io import BytesIO
+
+# Importa el mòdul per el tractament de dades en taules DataFrame.
 import pandas as pd
 from pandas import DataFrame
 
-# Importa el módul per l'us de grafs.
+# Importa el mòdul per l'us de grafs.
 import networkx as nx
 
-# Importa l'API de Telegram, i funcions per l'us del bot.
+# Importa l'API de Telegram, i funcions per l'ús del bot.
 import telegram
 from telegram.ext import Updater
 from telegram.ext import CommandHandler
 
-# Importa el módul per el seguiment de la sessió del bot.
+# Importa el mòdul per el seguiment de la sessió del bot.
 import logging
 
 # Configurem el seguiment de la sessió del bot.
@@ -128,11 +131,13 @@ def components(bot, update, user_data):
 # Funció que mostra el mapa de la ciutat amb les estacions de bicis i les arestes que les connecten.
 def plotgraph(bot, update, user_data):
     try:
-        # Obtenim el nom de la imatge amb una funció externa.
-        image = data.plot_graph(user_data['Graph'])
-        fitxer = "%d.png" % image
-        bot.send_photo(chat_id=update.message.chat_id, photo=open(fitxer, 'rb'))
-        os.remove(fitxer)
+        # Creem un objecte de tipus "BytesIO" per guardar la imatge del graf.
+        bio = BytesIO()
+        # Creem la imatge i obtenim el seu nom amb una funció externa.
+        imatge = data.plot_graph(user_data['Graph'])
+        imatge.save(bio, 'PNG')
+        bio.seek(0)
+        bot.send_photo(chat_id=update.message.chat_id, photo=bio)
     except Exception as e:
         print(e)
         bot.send_message(chat_id=update.message.chat_id, text='💣')
