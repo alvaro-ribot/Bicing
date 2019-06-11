@@ -163,9 +163,11 @@ def geo_graph(distance, bicing):
     # Matriz de zonas de la ciudad que contendrán las estaciones, en función de la distancia d.
     grid = [[[] for j in range(int(width/d) + 1)] for i in range(int(height/d) + 1)]
 
+    '''
     for stop in bicing:
-        a = stop[]
         grid[][].append(stop)
+        
+    '''
 
     '''
     min_lat = 41.357067
