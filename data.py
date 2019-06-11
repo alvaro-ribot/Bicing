@@ -1,6 +1,11 @@
+# Módulo para el tratamiento de datos.
 import pandas as pd
-import networkx as nx
 from pandas import DataFrame
+
+# Módulo para grafos.
+import networkx as nx
+
+# Módulos para mapas y distancias reales.
 from staticmap import StaticMap, Line, CircleMarker
 from haversine import haversine
 from geopy.geocoders import Nominatim
@@ -35,6 +40,7 @@ else: print(coords)
 '''
 
 
+# Función que calcula la ruta más rápida entre dos direcciones, retornando -1 si la ruta no es posible.
 def route(G, addresses, d):
     coords = addressesTOcoordinates(addresses)
     if coords is None: return None
@@ -119,9 +125,15 @@ def geometric_graph(distance, bicing):
     return G
 
 
+# Función para construir el grafo geométrico dada la distancia d máxima entre dos nodos. 
+# El algoritmo funciona partiendo el grafo en zonas cuadradas d*d y examinándolas con sus zonas adyacentes
+# en tiempo constante, suponiendo una distribución uniforme de nodos en la ciudad.
 def geo_graph(distance, bicing):
+
+    # Nodos del grafo.
     G = nx.Graph()
 
+    # Encontramos las latitudes y longitudes mínimas para saber las dimensiones de la zona de bicis.
     min_lat = bicing.loc[1].lat
     max_lat = bicing.loc[1].lat
     min_lon = bicing.loc[1].lon
@@ -148,8 +160,12 @@ def geo_graph(distance, bicing):
     width = haversine(coord1, coord2)*1000
     height = haversine(coord2, coord3)*1000
 
-    grid = [[]];
+    # Matriz de zonas de la ciudad que contendrán las estaciones, en función de la distancia d.
+    grid = [[[] for j in range(int(width/d) + 1)] for i in range(int(height/d) + 1)]
 
+    for stop in bicing:
+        a = stop[]
+        grid[][].append(stop)
 
     '''
     min_lat = 41.357067
