@@ -39,7 +39,7 @@ Un exemple d'util·lització que mostra la funcionalitat del bot és la següent
 
 ## Autors
 
-Els autors d'aquest projecte som dos estudiants del CFIS que cursen el Grau en Ciència i Enginyeria de Dades, a més del Grau en Matemàtiques, de la UPC.
+Els autors d'aquest projecte som dos estudiants del [CFIS](https://cfis.upc.edu/ca) que cursen el [Grau en Ciència i Enginyeria de Dades](http://dse.upc.edu/), a més del [Grau en Matemàtiques](https://fme.upc.edu/ca/estudis/graus/grau-en-matematiques), de la UPC.
 
 - *Álvaro Ribot Barrado*
 - *Luis Sierra Muntané*
