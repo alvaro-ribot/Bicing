@@ -26,19 +26,6 @@ def addressesTOcoordinates(addresses):
     except:
         return None
 
-'''
-coords = addressesTOcoordinates('Passeig de Gràcia 92, La Rambla 51')
-if coords is None: print("Adreça no trobada")
-else:
-    coord_origen, coord_desti = coords
-    print('Passeig de Gràcia 92:', coord_origen)
-    print('La Rambla 51:', coord_desti)
-
-coords = addressesTOcoordinates('Avinguda de Jordi Cortadella, Carrer de Jordi Petit')
-if coords is None: print("Adreça no trobada")
-else: print(coords)  
-'''
-
 
 # Función que calcula la ruta más rápida entre dos direcciones, retornando -1 si la ruta no es posible.
 def route(G, addresses, d):
@@ -48,6 +35,7 @@ def route(G, addresses, d):
         coord_origen, coord_desti = coords
         st1 = ('source', coord_origen[0], coord_origen[1])
         st2 = ('target', coord_desti[0], coord_origen[1])
+
 
         G.add_node(st1)
         G.add_node(st2)
@@ -98,7 +86,6 @@ def nasty_geometric_graph(distance, bicing):
     for idx1 in G:
         for idx2 in G:
             if idx1 != idx2:
-
                 coord1 = (bicing.at[idx1, 'lat'], bicing.at[idx1, 'lon'])
                 coord2 = (bicing.at[idx2, 'lat'], bicing.at[idx2, 'lon'])
                 if haversine(coord1, coord2)*1000 <= distance:
@@ -191,7 +178,7 @@ def get_edges(G):
 def connex_components(G):
     return len(list(nx.connected_components(G)))
 
-
+# retorna una imatge del graf G situant-lo a la 
 def plot_graph(G):
     m_bcn = StaticMap(1000, 1000)
     for st in G:
@@ -206,31 +193,12 @@ def plot_graph(G):
         m_bcn.add_line(line)
 
 
-    image = m_bcn.render()
-    image.save('bicing_plot.png')
-    return 'bicing_plot.png'
-
-def main ():
-    url = 'https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information'
-    bicing = DataFrame.from_records(pd.read_json(url)['data']['stations'], index='station_id')
+    return m_bcn.render()
 
 
-    G = geo_graph(1000, bicing)
 
-
-    '''
-    print(bicing.loc[1].lat)
-    print(bicing.at[1, 'lat'], bicing.at[1, 'lon'])
-    '''
-
-    #print(G.number_of_nodes())
-    #print(G.number_of_edges())
-    #plot_graph(G)
-
-    #geo_graph(1)
     #route(G, 'Pau Gargallo 1, PL. Lesseps', d)
 
-#main()
 
 
 '''

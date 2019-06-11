@@ -108,7 +108,7 @@ def edges(bot, update, user_data):
         m = data.get_edges(user_data['Graph'])
         message = "Aquest nombre de trajectes són viables sota la teva configuració: "+ str(m)
         bot.send_message(chat_id=update.message.chat_id, text=message)
-    except Exception as e:
+        except Exception as e:
         print(e)
         bot.send_message(chat_id=update.message.chat_id, text='💣')
 
