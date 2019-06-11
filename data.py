@@ -87,27 +87,9 @@ def route(G, addresses, d):
         G.remove_node(st2)
 
 
-'''
-def geometric_graph(distance, bicing):
-    G = nx.Graph()
-
-    for st in bicing.itertuples():
-        stop = (st.Index, st.lat, st.lon)
-        G.add_node(stop)
-
-    for st1 in G:
-        for st2 in G:
-            if st1[0] != st2[0]:
-                coord1 = (st1[1], st1[2])
-                coord2 = (st2[1], st2[2])
-                if haversine(coord1, coord2)*1000 <= distance:
-                    G.add_edge(st1, st2)
-
-    return G
-'''
 
 
-def geometric_graph(distance, bicing):
+def nasty_geometric_graph(distance, bicing):
     G = nx.Graph()
 
     for st in bicing.itertuples():
@@ -128,78 +110,99 @@ def geometric_graph(distance, bicing):
 # Función para construir el grafo geométrico dada la distancia d máxima entre dos nodos. 
 # El algoritmo funciona partiendo el grafo en zonas cuadradas d*d y examinándolas con sus zonas adyacentes
 # en tiempo constante, suponiendo una distribución uniforme de nodos en la ciudad.
-def geo_graph(distance, bicing):
+def geometric_graph(distance, bicing):
 
     # Nodos del grafo.
     G = nx.Graph()
+    for st in bicing.itertuples():
+        G.add_node(st)
 
     # Encontramos las latitudes y longitudes mínimas para saber las dimensiones de la zona de bicis.
     min_lat = bicing.loc[1].lat
     max_lat = bicing.loc[1].lat
     min_lon = bicing.loc[1].lon
     max_lon = bicing.loc[1].lon
-
-    for st in bicing.itertuples():
+    for st in list(G.nodes()):
         if st.lat < min_lat: min_lat = st.lat
         if st.lat > max_lat: max_lat = st.lat
         if st.lon < min_lon: min_lon = st.lon
         if st.lat > min_lat: max_lon = st.lon
 
-    print(min_lat)
-    print(max_lat)
-    print(min_lon)
-    print(max_lon)
 
-    print('**********************')
+    corner1 = (min_lat, min_lon)
+    corner2 = (min_lat, max_lon)
+    corner3 = (max_lat, min_lon)
 
-    coord1 = (min_lat, min_lon)
-    coord2 = (min_lat, max_lon)
-    coord3 = (max_lat, max_lon)
-    coord4 = (max_lat, min_lon)
+    width = haversine(corner1, corner2)*1000 # = 5.275325461106297
+    height = haversine(corner1, corner3)*1000 # = 10.4041900722105
 
-    width = haversine(coord1, coord2)*1000
-    height = haversine(coord2, coord3)*1000
+    w_shells = int(width/distance)+1
+    h_shells = int(height/distance)+1
 
     # Matriz de zonas de la ciudad que contendrán las estaciones, en función de la distancia d.
-    grid = [[[] for j in range(int(width/d) + 1)] for i in range(int(height/d) + 1)]
+    grid = [[[] for j in range(w_shells)] for i in range(h_shells)]
 
-    '''
-    for stop in bicing:
-        grid[][].append(stop)
-        
-    '''
+    for st in list(G.nodes()):
+        lon_st = int((st.lon - min_lon)/w_shells)
+        lat_st = int((st.lat - min_lat)/h_shells)
+        grid[lon_st][lat_st].append(st)
 
-    '''
-    min_lat = 41.357067
-    max_lat = 41.450634
-    min_lon = 2.111615
-    max_lon = 2.17482
+    def neighbour(G, st1, i, j, grid):
+        for st2 in grid[i][j]:
+            if st1.Index != st2.Index:
+                coord1 = (st1.lat, st1.lon)
+                coord2 = (st2.lat, st2.lon)
+                if haversine(coord1, coord2)*1000 <= distance:
+                    G.add_edge(st1, st2)
 
-    dist_lon = 5.275325461106297
-    dist_lat = 10.4041900722105
-    '''
+    for i in range(h_shells):
+        for j in range(w_shells):
+            for st1 in grid[i][j]:
+                neighbour(G, st1, i, j, grid)
+                try: neighbour(G, st1, i-1, j, grid)
+                except KeyError: pass
+                try: neighbour(G, st1, i-1, j-1, grid)
+                except KeyError: pass
+                try: neighbour(G, st1, i-1, j+1, grid)
+                except KeyError: pass
+                try: neighbour(G, st1, i, j-1, grid)
+                except KeyError: pass
+                try: neighbour(G, st1, i, j+1, grid)
+                except KeyError: pass
+                try: neighbour(G, st1, i+1, j-1, grid)
+                except KeyError: pass
+                try: neighbour(G, st1, i+1, j, grid)
+                except KeyError: pass
+                try: neighbour(G, st1, i+1, j+1, grid)
+                except KeyError: pass
+            grid[i][j].clear() # es guanya eficiencia no tornant a visitar aquesta cela
+    
+    return G
 
-
+# retorna el nombre de nodes que te el graf G
 def get_nodes(G):
     return G.number_of_nodes()
 
+# retorna el nombre d'arestes que te el graf G
 def get_edges(G):
     return G.number_of_edges()
 
+# retorna el nobre de components connexes que te el graf G
 def connex_components(G):
     return len(list(nx.connected_components(G)))
+
 
 def plot_graph(G):
     m_bcn = StaticMap(1000, 1000)
     for st in G:
-        marker = CircleMarker((st[2], st[1]), 'red', 2)
+        marker = CircleMarker((st.lon, st.lat), 'red', 2)
         m_bcn.add_marker(marker)
 
     #l = list(G.edges())
     for e in G.edges():
         st1 = e[0];
         st2 = e[1];
-        line = Line(((st1[2], st1[1]), (st2[2], st2[1])), 'blue', 1)
+        line = Line(((st1.lon, st1.lat), (st2.lon, st2.lat)), 'blue', 1)
         m_bcn.add_line(line)
 
 
@@ -233,73 +236,17 @@ url = 'https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information'
 bicing = DataFrame.from_records(pd.read_json(url)['data']['stations'], index='station_id')
 
 
-d = 5000
-
-
-min_lat = bicing.loc[1].lat
-max_lat = bicing.loc[1].lat
-min_lon = bicing.loc[1].lon
-max_lon = bicing.loc[1].lon
-
-for st in bicing.itertuples():
-    if st.lat < min_lat: min_lat = st.lat
-    if st.lat > max_lat: max_lat = st.lat
-    if st.lon < min_lon: min_lon = st.lon
-    if st.lat > min_lat: max_lon = st.lon
-
-print(min_lat)
-print(max_lat)
-print(min_lon)
-print(max_lon)
-
-print('**********************')
-
-coord1 = (min_lat, min_lon)
-coord2 = (min_lat, max_lon)
-coord3 = (max_lat, max_lon)
-coord4 = (max_lat, min_lon)
-
-width = haversine(coord1, coord2)*1000
-height = haversine(coord2, coord3)*1000
-
-
-print(width)
-print(height)
-
-grid = [[[] for j in range(int(width/d)+1)] for i in range(int(height/d)+1)]
-
-
-G = nx.Graph()
-for st in bicing.itertuples():
-        G.add_node(st.Index)
-
-print(grid)
-grid[0][0].append(1)
-print(grid)
-'''
-for idx1 in G:
-        for idx2 in G:
-            if idx1 != idx2:
-                coord1 = (bicing.at[idx1, 'lat'], bicing.at[idx1, 'lon'])
-                coord2 = (bicing.at[idx2, 'lat'], bicing.at[idx2, 'lon'])
-                if haversine(coord1, coord2)*1000 <= distance:
-                    G.add_edge(idx1, idx2)
-
-'''
+distance = 1000
 
 
 
+G = geometric_graph(distance, bicing);
+print(get_nodes(G));
+print(get_edges(G));
 
-
-
-
-
-
-
-'''
-route(G, 'Avinguda Meridiana 1, Plaza Lesseps', 1000)
-geometric_graph(500)
-plot_graph()
-'''
+W = nasty_geometric_graph(distance, bicing)
+print(get_nodes(W));
+print(get_edges(W));
+plot_graph(G);          
 
 
