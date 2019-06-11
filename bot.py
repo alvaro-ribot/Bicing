@@ -1,7 +1,7 @@
 # Importa el mòdul corresponent al càlcul sobre el graf i la informació del proyecte.
 import data
 
-# Importa el mòdul per accions de memòria que es farà servir per arxius de tipus imatges.
+# Importa l'API pel tractament d'arxius bytes, com ara imatges.
 from io import BytesIO
 
 # Importa el mòdul per el tractament de dades en taules DataFrame.
@@ -26,13 +26,14 @@ logger = logging.getLogger(__name__)
 
 
 # Diccionari amb les funcions que pot executar el bot i una breu descripció de cadascuna d'elles.
-commands = {"start":"Inicia la conversa amb el bot", "help":"Ensenya la llista de comandes d'aquest bot",
-"authors":"Coneix els autors d'aquest projecte", "graph":"Seguit de la distància que desitgis, es genera el graf geomètric de Barcelona",
-"nodes":"Consulta quantes estacions de bici tens a la teva disposició",
-"edges":"Consulta quants trajectes possibles tens a la teva disposició, segons els teus requiriments mètrics",
-"components":"Consultes quantes illes ciclistes hi ha segons els teus requeriments mètrics",
-"plotgraph":"Mira un mapa de les parades de bici i els trajectes entre elles",
-"route":"Consulta la ruta més ràpida entre dos direccions donades"}
+commands = {"start": "Inicia la conversa amb el bot", "help": "Ensenya la llista de comandes d'aquest bot",
+            "authors": "Coneix els autors d'aquest projecte",
+            "graph": "Seguit de la distància que desitgis, es genera el graf geomètric de Barcelona",
+            "nodes": "Consulta quantes estacions de bici tens a la teva disposició",
+            "edges": "Consulta quants trajectes possibles tens a la teva disposició, segons els teus requiriments mètrics",
+            "components": "Consultes quantes illes ciclistes hi ha segons els teus requeriments mètrics",
+            "plotgraph": "Mira un mapa de les parades de bici i els trajectes entre elles",
+            "route": "Consulta la ruta més ràpida entre dos direccions donades"}
 
 
 # L'argument "user_data" fa referència a un diccionari amb les dades que es guardaran per l'usuari,
@@ -42,7 +43,7 @@ commands = {"start":"Inicia la conversa amb el bot", "help":"Ensenya la llista d
 # Primera funció, serveix per activar el bot. Envia un breu missatge de benvinguda.
 def start(bot, update, user_data):
     # Missatje de benvinguda.
-    message = "Hola! Soc el bot Bicing. Amb /help pots veure una llista de les comandes disponibles."
+    message = "Hola! Soc el bot Bicing. Amb /help pots veure una llista amb les comandes disponibles."
     bot.send_message(chat_id=update.message.chat_id, text=message)
 
     # Guardem les següents dades en el "user_data" donat que es fan servir en altres commandes.
@@ -59,7 +60,7 @@ def start(bot, update, user_data):
 # Funció d'ajuda a l'usuari que disposa les possibles comandas del bot.
 def help(bot, update):
     bot.send_message(chat_id=update.message.chat_id, text="Aquestes són les commandes disponibles:")
-    # String de varias líneas para componer el mensaje.
+    # Variable de tipus string de varies línies per composar el missatge amb un format adient.
     message = """"""
     for action, description in commands.items():
         command = '/' + action + ' - ' + description + '\n'
@@ -79,13 +80,15 @@ def authors(bot, update):
 # mitjançant la funció externa eficient de complexitat O(V + E).
 def graph(bot, update, args, user_data):
     try:
+        # Comprovem que tenim un nombre correcte d'arguments.
         if len(args) == 1:
             distance = float(args[0])
+            # Construïm el graf amb la distància que l'usuari demana.
             user_data['Graph'] = data.geometric_graph(distance, user_data['bicing'])
-            message = 'Graf geomètric actualitzat amb distància exitosament! (Nova distància = ' + str(distance) + ')'
+            message = 'Graf geomètric actualitzat exitosament! (Nova distància = %d metres)' % (distance)
             bot.send_message(chat_id=update.message.chat_id, text=message)
         else:
-            message = "Nombre invalid d'arguments (s'han donat " + str(len(args)) + " i s'esperen 1)"
+            message = "Nombre invalid d'arguments (s'han donat %d i s'esperen 1)" % (len(args))
             bot.send_message(chat_id=update.message.chat_id, text=message)
     except Exception as e:
         print(e)
@@ -97,7 +100,7 @@ def nodes(bot, update, user_data):
     try:
         # Obtenim el nombre de nodes amb la funció externa.
         n = data.get_nodes(user_data['Graph'])
-        message = "Aquest nombre d'estacions estan a la teva disposició: " + str(n)
+        message = "Aquest nombre d'estacions estan a la teva disposició: %d" % (n)
         bot.send_message(chat_id=update.message.chat_id, text=message)
     except Exception as e:
         print(e)
@@ -109,7 +112,7 @@ def edges(bot, update, user_data):
     try:
         # Obtenim el nombre d'arestes amb la funció externa.
         m = data.get_edges(user_data['Graph'])
-        message = "Aquest nombre de trajectes són viables sota la teva configuració: "+ str(m)
+        message = "Aquest nombre de trajectes són viables sota la teva configuració: %d" % (m)
         bot.send_message(chat_id=update.message.chat_id, text=message)
     except Exception as e:
         print(e)
@@ -121,19 +124,20 @@ def components(bot, update, user_data):
     try:
         # Obtenim el nombre de components connexes amb la funció externa.
         c = data.connex_components(user_data['Graph'])
-        message = "El nombre de zones de bicicletes Bicing sota les teves restriccions és: " + str(c)
+        message = "El nombre de zones de bicicletes Bicing sota les teves restriccions és: %d" % (c)
         bot.send_message(chat_id=update.message.chat_id, text=message)
     except Exception as e:
         print(e)
         bot.send_message(chat_id=update.message.chat_id, text='💣')
 
 
-# Funció que mostra el mapa de la ciutat amb les estacions de bicis i les arestes que les connecten.
+# Funció que mostra el mapa de la ciutat amb les estacions de bici i les arestes que les connecten.
 def plotgraph(bot, update, user_data):
+    bot.send_message(chat_id=update.message.chat_id, text="Si us plau, espera mentre es produeix la imatge...")
     try:
         # Creem un objecte de tipus "BytesIO" per guardar la imatge del graf.
         bio = BytesIO()
-        # Creem la imatge i obtenim el seu nom amb una funció externa.
+        # Creem i guardem la imatge amb una funció externa per seguidament enviar-la.
         imatge = data.plot_graph(user_data['Graph'])
         imatge.save(bio, 'PNG')
         bio.seek(0)
@@ -147,19 +151,23 @@ def plotgraph(bot, update, user_data):
 # Després es converteixen les direccions en coordenades i es calcula la ruta més ràpida amb la funció externa.
 def route(bot, update, args, user_data):
     try:
-        # Cambiem el missatge para eliminar el "/route".
+        # Canviem el missatge per eliminar el "/route".
         address_info = update.message.text[7:]
-        # Obtenim amb la funció externa el temps que triga en fer el trajecte.
-        tiempo = data.ruta(address_info)
+        # Obtenim amb la funció externa el temps que es triga en fer el trajecte.
+        time = data.ruta(address_info)
         if time == -1:
             # En aquest cas no s'ha trobat la direcció demanada i es retorna un avís a l'usuari.
-            bot.send_message(chat_id=update.message.chat_id, text="Adreça no trobada")
-        else :
+            message = "Adreça no trobada, assegura't que tens l'adreça ben escrita"
+            bot.send_message(chat_id=update.message.chat_id, text=message)
+        else:
             # Quan es troben las direccions es retorna un mapa de la ruta més ràpida entre elles.
-            # Aquí s'obté el nom del fitxer amb la imatge del mapa.
-            image = data.plot_route()
-            fitxer = "%d.png" % image
-            bot.send_photo(chat_id=update.message.chat_id, photo=open(fitxer, 'rb'))
+            # Creem un objecte de tipus "BytesIO" per guardar la imatge de la ruta en el graf.
+            bio = BytesIO()
+            # Creem i guardem la imatge amb una funció externa per seguidament enviar-la.
+            imatge = data.plot_route(user_data['Graph'])
+            imatge.save(bio, 'PNG')
+            bio.seek(0)
+            bot.send_photo(chat_id=update.message.chat_id, photo=bio)
     except Exception as e:
         print(e)
         bot.send_message(chat_id=update.message.chat_id, text='💣')
