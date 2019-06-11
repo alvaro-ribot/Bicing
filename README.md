@@ -34,15 +34,16 @@ git pull
 
 ## Exemple d'utilització
 
-Per util·litzar el bot, com s'ha indicat en la introducció, és preferible troba-lo a Telegram com @Bicing_AP2_bot.
+Per util·litzar el bot, com s'ha indicat en la introducció, és preferible trobar-lo a Telegram com @Bicing_AP2_bot.
+Per pujar el bot i control·lar el sue funcionament intern cal un `token` especific i, per tant, no és possible fer-ho sense el permís dels creadors del repositori. 
 Un exemple d'util·lització que mostra la funcionalitat del bot és la següent:
 
 ## Autors
 
 Els autors d'aquest projecte som dos estudiants del [CFIS](https://cfis.upc.edu/ca) que cursen el [Grau en Ciència i Enginyeria de Dades](http://dse.upc.edu/), a més del [Grau en Matemàtiques](https://fme.upc.edu/ca/estudis/graus/grau-en-matematiques), de la UPC.
 
-- *Álvaro Ribot Barrado*
-- *Luis Sierra Muntané*
+- *Álvaro Ribot Barrado* <alvaro.ribot@est.fib.upc.edu>
+- *Luis Sierra Muntané* <luis.sierra@est.fib.upc.edu>
 
 ## Agraïments
 
