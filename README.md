@@ -19,7 +19,7 @@ El cos d'aquest projecte està escrit íntegrament en Python 3, a més d'utilitz
 pip3 install -r requirements.txt
 ```
 
-I així s'instal·les tots els mòduls i APIs necessàries pel funcionament del codi.
+I així s'instal·len tots els mòduls i APIs necessàries pel funcionament del codi.
 
 ### Instal·lació
 
@@ -29,7 +29,7 @@ Per baixar-se el contingut d'aquest repositori, des de la terminal de comandes c
 git clone https://github.com/Sierra17/AP2_Bicing.git
 ```
 
-I per actualitzar el contingut, mentre es trobi dins el directori
+I per actualitzar el contingut, mentre es trobi dins el directori a la terminal de comandes cal escriure:
 
 ```sh
 git pull
@@ -68,7 +68,7 @@ Les commandes que pot rebre el bot són les següents:
 
 - `/route origen, destí` -- Consulta la ruta més ràpida entre dos direccions donades, separades amb una coma
 
-Un exemple d'util·lització que mostra la funcionalitat del bot és la següent:
+Un exemple d'util·lització que mostra una mica per sobre la funcionalitat del bot és la següent:
 
 <center><img src='demo.png' width='400'></center>
 
