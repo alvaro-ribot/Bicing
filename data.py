@@ -143,7 +143,7 @@ def route(G, addresses):
         origen = ('source', coord_origen[0], coord_origen[1])
         desti = ('target', coord_desti[0], coord_desti[1])
 
-        W = nx.Graph(). # creem un nou graf amb pesos a les arestes
+        W = nx.Graph() # creem un nou graf amb pesos a les arestes
 
         W.add_node(origen)
         W.add_node(desti)
@@ -160,6 +160,9 @@ def route(G, addresses):
             t2 = haversine((st.lat, st.lon), (desti[1], desti[2]))/4
             W.add_edge(origen, st, weight = t1)
             W.add_edge(desti, st, weight = t2)
+
+        caminant = haversine((desti[1], desti[2]), (origen[1], origen[2]))/4
+        W.add_edge(origen, desti, weight = caminant)
         
         # Cami mes curt utilitzant l'algorisme de dijkstra
         path = nx.dijkstra_path(W, source=origen, target=desti)
