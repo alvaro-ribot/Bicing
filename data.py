@@ -199,9 +199,7 @@ def route(G, addresses):
                 lon2 = st2.lon
                 lat2 = st2.lat
             m_route.add_line(Line(((lon1, lat1), (lon2, lat2)), 'green', 4))
-
-        return m_route.render()
-
         W.clear()
+        return m_route.render()
 
 
