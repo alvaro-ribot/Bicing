@@ -42,7 +42,7 @@ def geometric_graph(distance, bicing):
     corner3 = (max_lat, min_lon)
     width = haversine(corner1, corner2)*1000   # amplada
     height = haversine(corner1, corner3)*1000  # alcada
-    w_shells = int(width/distance)+1  # dividim l'amplada segons la distnacia
+    w_shells = int(width/distance)+1  # dividim l'amplada segons la distancia
     h_shells = int(height/distance)+1 # dividim l'alcada segons la distancia
 
     # Graella de zones de la ciutat que contindran les estacions, en funcio de distance.
