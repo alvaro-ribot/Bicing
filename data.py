@@ -11,6 +11,12 @@ from haversine import haversine
 from geopy.geocoders import Nominatim
 
 
+# Retorna les dades d'estacions de bicing de Barcelona
+def dades_bicing():
+    url = 'https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information'
+    bicing = DataFrame.from_records(pd.read_json(url)['data']['stations'], index='station_id')
+    return bicing
+
 
 # Funcio per construir el graf geometric donada la distancia d maxima entre dos nodos. 
 # L'algorisme funciona partint el grafo en zones quadrades d*d i examinant-les amb les seves 
