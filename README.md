@@ -8,6 +8,9 @@ Per fer servir el bot, els usuaris el poden buscar a telegram sota l'identificad
 
 Alternativament, es pot buscar en el web amb la direcció [t.me/Bicing_AP2_bot](https://t.me/Bicing_AP2_bot)
 
+Les dades de les estacions de bici estan extretes del web de bicing, que es pot veure a la següent direcció url:
+[https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information](https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information)
+
 ### Prerrequisits
 
 El cos d'aquest projecte està escrit íntegrament en Python 3, a més d'utilitzar mòduls i interfícies externes. Per tal de poder fer-lo servir, un cop s'ha instal·lat Python 3, cal descarregar les components incloses en l'arxiu `requirements.txt`, on la manera més senzilla de fer-ho és amb la següent comanda a la terminal.
@@ -32,11 +35,42 @@ I per actualitzar el contingut, mentre es trobi dins el directori
 git pull
 ```
 
+### Arquitectura del sistema
+
+El projecte està construït al voltant de l'objecte `Graph` de la llibreria `Networkx`; és sobre aquest graf que es fan les operacions de cerca i altres funcionalitats del bot. El projecte en si consta de dos mòduls:
+
+> `data.py` - conté tot el codi referent al tractament de les dades, la construcció del graf i els càlculs sobre aquest graf, com ara construir el graf geomètric o trobar rutes. 
+
+> `bot.py` - conté tot el codi referent al funcionament del bot de Telegram
+
 ## Exemple d'utilització
 
 Per util·litzar el bot, com s'ha indicat en la introducció, és preferible trobar-lo a Telegram com @Bicing_AP2_bot.
-Per pujar el bot i control·lar el sue funcionament intern cal un `token` especific i, per tant, no és possible fer-ho sense el permís dels creadors del repositori. 
+Per pujar el bot i control·lar el sue funcionament intern cal un `token` especific i, per tant, no és possible fer-ho sense el permís dels creadors del repositori.
+
+Les commandes que pot rebre el bot són les següents:
+
+- `/start` -- Inicia la conversa amb el bot
+
+- `/help` -- Ensenya la llista de comandes d'aquest bot
+
+- `/authors` -- Coneix els autors d'aquest projecte
+
+- `/graph (distance)` -- Seguit de la distància que desitgis, es genera el graf geomètric de Barcelona
+
+- `/nodes`-- Consulta quantes estacions de bici tens a la teva disposició
+
+- `/edges`-- Consulta quants trajectes possibles tens a la teva disposició, segons els teus requiriments mètrics
+
+- `/components` -- Consultes quantes illes ciclistes hi ha segons els teus requeriments mètrics
+
+- `/plotgraph` -- Mira un mapa de les parades de bici i els trajectes entre elles
+
+- `/route origen, destí` -- Consulta la ruta més ràpida entre dos direccions donades, separades amb una coma
+
 Un exemple d'util·lització que mostra la funcionalitat del bot és la següent:
+
+<center><img src='demo.png' width='400'></center>
 
 ## Autors
 
