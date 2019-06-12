@@ -1,20 +1,20 @@
-# Módulo para el tratamiento de datos.
+# Moduls pel tractament de dades.
 import pandas as pd
 from pandas import DataFrame
 
-# Módulo para grafos.
+# Modul per treballar amb grafs.
 import networkx as nx
 
-# Módulos para mapas y distancias reales.
+# Moduls per mapes i distancies reals.
 from staticmap import StaticMap, Line, CircleMarker
 from haversine import haversine
 from geopy.geocoders import Nominatim
 
 
 
-# Función para construir el grafo geométrico dada la distancia d máxima entre dos nodos. 
-# El algoritmo funciona partiendo el grafo en zonas cuadradas d*d y examinándolas con sus zonas adyacentes
-# en tiempo constante, suponiendo una distribución uniforme de nodos en la ciudad.
+# Funcio per construir el graf geometric donada la distancia d maxima entre dos nodos. 
+# L'algorisme funciona partint el grafo en zones quadrades d*d i examinant-les amb les seves 
+# zones adjacents en temps constant, suposant una distribucio uniforme de nodes en la ciutat.
 def geometric_graph(distance, bicing):
     G = nx.Graph()
     for st in bicing.itertuples():
@@ -34,10 +34,10 @@ def geometric_graph(distance, bicing):
     corner1 = (min_lat, min_lon)
     corner2 = (min_lat, max_lon)
     corner3 = (max_lat, min_lon)
-    width = haversine(corner1, corner2)*1000
-    height = haversine(corner1, corner3)*1000
-    w_shells = int(width/distance)+1
-    h_shells = int(height/distance)+1
+    width = haversine(corner1, corner2)*1000   # amplada
+    height = haversine(corner1, corner3)*1000  # alcada
+    w_shells = int(width/distance)+1  # dividim l'amplada segons la distnacia
+    h_shells = int(height/distance)+1 # dividim l'alcada segons la distancia
 
     # Graella de zones de la ciutat que contindran les estacions, en funcio de distance.
     grid = [[[] for j in range(w_shells)] for i in range(h_shells)]
@@ -133,7 +133,7 @@ def addressesTOcoordinates(addresses):
 
 
 
-# Calcula la ruta mes rapida entre dues direccions, 
+# Calcula la ruta mes rapida entre dues direccions (adresseses) al graf G,
 # retorna None si no troba les direccions.
 def route(G, addresses):
     coords = addressesTOcoordinates(addresses)
@@ -143,12 +143,14 @@ def route(G, addresses):
         origen = ('source', coord_origen[0], coord_origen[1])
         desti = ('target', coord_desti[0], coord_desti[1])
 
-        W = nx.Graph()
+        W = nx.Graph(). # creem un nou graf amb pesos a les arestes
 
         W.add_node(origen)
         W.add_node(desti)
         for st in G: W.add_node(st)
 
+        # El pes de cada aresta es la distancia entre els nodes dividit entre la
+        # velocitat (10 km/h en bici i 4 km/h caminant)
         for e in G.edges():
             time = haversine((e[0].lat, e[0].lon), (e[1].lat, e[1].lon))/10
             W.add_edge(e[0], e[1], weight = time)
@@ -159,8 +161,10 @@ def route(G, addresses):
             W.add_edge(origen, st, weight = t1)
             W.add_edge(desti, st, weight = t2)
         
+        # Cami mes curt utilitzant l'algorisme de dijkstra
         path = nx.dijkstra_path(W, source=origen, target=desti)
 
+        # Dibuixem la ruta en un mapa
         m_route = StaticMap(1000, 1000)
         m_route.add_marker(CircleMarker((origen[2], origen[1]), 'red', 6))
         m_route.add_marker(CircleMarker((desti[2], desti[1]), 'red', 6))
@@ -171,8 +175,8 @@ def route(G, addresses):
 
         n = len(path)
         for i in range(n-1):
-            st1 = path[i];
-            st2 = path[i+1];
+            st1 = path[i]
+            st2 = path[i+1]
             if st1 == origen:
                 lon1 = st1[2]
                 lat1 = st1[1]
